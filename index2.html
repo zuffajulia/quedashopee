@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisador Comparativo de Curva ABC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .file-input-container {
+            border: 2px dashed #9ca3af;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        /* O estilo de drag-over será aplicado via JS com classes do Tailwind */
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 flex items-center justify-center min-h-screen p-4">
+    <div class="w-full max-w-3xl mx-auto p-6 md:p-8 bg-white rounded-2xl shadow-lg">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">Analisador Comparativo de Curva ABC</h1>
+            <p class="text-gray-500 mt-2">Envie as planilhas dos dois períodos e o estoque atual.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+             <!-- Coluna Esquerda -->
+            <div class="space-y-6">
+                <!-- Input Vendas Mês 1 -->
+                <div id="sales1-drop-zone" class="file-input-container p-6 rounded-lg text-center cursor-pointer h-full flex flex-col justify-center">
+                    <input type="file" id="sales1-file-input" class="hidden" accept=".csv,.xlsx">
+                    <label for="sales1-file-input" class="cursor-pointer">
+                        <svg class="mx-auto h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        <p class="mt-2 text-sm text-gray-600"><span class="font-semibold text-[#2f1c46]">Vendas Período 1</span></p>
+                        <p class="text-xs text-gray-500">(Mês anterior)</p>
+                        <span id="sales1-file-name" class="mt-2 block text-xs font-medium text-[#2f1c46]"></span>
+                    </label>
+                </div>
+
+                 <!-- Input Vendas Mês 2 -->
+                <div id="sales2-drop-zone" class="file-input-container p-6 rounded-lg text-center cursor-pointer h-full flex flex-col justify-center">
+                    <input type="file" id="sales2-file-input" class="hidden" accept=".csv,.xlsx">
+                    <label for="sales2-file-input" class="cursor-pointer">
+                         <svg class="mx-auto h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        <p class="mt-2 text-sm text-gray-600"><span class="font-semibold text-[#2f1c46]">Vendas Período 2</span></p>
+                        <p class="text-xs text-gray-500">(Mês mais recente)</p>
+                        <span id="sales2-file-name" class="mt-2 block text-xs font-medium text-[#2f1c46]"></span>
+                    </label>
+                </div>
+            </div>
+             <!-- Coluna Direita -->
+            <div class="space-y-6">
+                 <!-- Input Estoque -->
+                <div id="stock-drop-zone" class="file-input-container p-6 rounded-lg text-center cursor-pointer h-full flex flex-col justify-center">
+                    <input type="file" id="stock-file-input" class="hidden" accept=".csv,.xlsx">
+                    <label for="stock-file-input" class="cursor-pointer">
+                         <svg class="mx-auto h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                        <p class="mt-2 text-sm text-gray-600"><span class="font-semibold text-[#2f1c46]">Estoque Atual</span></p>
+                         <p class="text-xs text-gray-500">(Apenas 1 arquivo)</p>
+                        <span id="stock-file-name" class="mt-2 block text-xs font-medium text-[#2f1c46]"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <button id="process-button" class="w-full bg-[#2f1c46] text-white font-bold py-3 px-4 rounded-lg hover:bg-[#462a69] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#462a69] transition duration-150 ease-in-out disabled:bg-gray-400">
+                Processar e Gerar Análise Comparativa
+            </button>
+        </div>
+
+        <div id="status-area" class="mt-6 text-center"></div>
+        <div id="download-area" class="mt-4 space-y-3 hidden"></div>
+
+    </div>
+
+    <script>
+        // --- Setup de Variáveis e Elementos do DOM ---
+        const sales1DropZone = document.getElementById('sales1-drop-zone');
+        const sales2DropZone = document.getElementById('sales2-drop-zone');
+        const stockDropZone = document.getElementById('stock-drop-zone');
+        const sales1FileInput = document.getElementById('sales1-file-input');
+        const sales2FileInput = document.getElementById('sales2-file-input');
+        const stockFileInput = document.getElementById('stock-file-input');
+        const sales1FileName = document.getElementById('sales1-file-name');
+        const sales2FileName = document.getElementById('sales2-file-name');
+        const stockFileName = document.getElementById('stock-file-name');
+        const processButton = document.getElementById('process-button');
+        const statusArea = document.getElementById('status-area');
+        const downloadArea = document.getElementById('download-area');
+
+        let salesFile1 = null;
+        let salesFile2 = null;
+        let stockFile = null;
+
+        // --- Lógica de Arrastar e Soltar ---
+        function setupDragDrop(dropZone, fileInput, fileNameDisplay) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => dropZone.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false));
+            ['dragenter', 'dragover'].forEach(eventName => dropZone.addEventListener(eventName, () => dropZone.classList.add('bg-[#2f1c46]/10', 'border-[#2f1c46]'), false));
+            ['dragleave', 'drop'].forEach(eventName => dropZone.addEventListener(eventName, () => dropZone.classList.remove('bg-[#2f1c46]/10', 'border-[#2f1c46]'), false));
+            dropZone.addEventListener('drop', (e) => {
+                fileInput.files = e.dataTransfer.files;
+                updateFileState(fileInput, fileNameDisplay);
+            }, false);
+            fileInput.addEventListener('change', () => updateFileState(fileInput, fileNameDisplay), false);
+        }
+        
+        function updateFileState(input, nameDisplay) {
+            const file = input.files[0];
+            if (input.id.startsWith('sales1')) salesFile1 = file;
+            else if (input.id.startsWith('sales2')) salesFile2 = file;
+            else stockFile = file;
+            nameDisplay.textContent = file ? file.name : '';
+        }
+        
+        setupDragDrop(sales1DropZone, sales1FileInput, sales1FileName);
+        setupDragDrop(sales2DropZone, sales2FileInput, sales2FileName);
+        setupDragDrop(stockDropZone, stockFileInput, stockFileName);
+
+        processButton.addEventListener('click', handleFileProcessing);
+        
+        function setStatus(message, type = 'info') {
+            const colors = { info: 'text-gray-500', error: 'text-red-500 font-semibold', success: 'text-green-600 font-semibold' };
+            statusArea.innerHTML = `<p class="${colors[type]}">${message}</p>`;
+        }
+
+        function handleFileProcessing() {
+            if (!salesFile1 || !salesFile2 || !stockFile) {
+                setStatus('Por favor, envie os três arquivos para continuar.', 'error');
+                return;
+            }
+            setStatus('Lendo arquivos...', 'info');
+            processButton.disabled = true;
+            downloadArea.classList.add('hidden');
+            downloadArea.innerHTML = '';
+
+            const fileReaderPromise = (file) => new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = () => { reader.abort(); reject(new DOMException("Problem parsing input file.")); };
+                reader.onload = () => {
+                    try {
+                        const data = new Uint8Array(reader.result);
+                        const workbook = XLSX.read(data, {type: 'array'});
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
+                        resolve(XLSX.utils.sheet_to_json(worksheet, { defval: "" }));
+                    } catch (e) {
+                        reader.readAsText(file);
+                        reader.onload = () => {
+                           Papa.parse(reader.result, {
+                                header: true, skipEmptyLines: true,
+                                complete: (results) => resolve(results.data),
+                                error: (err) => reject(err)
+                           });
+                        }
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            });
+
+            Promise.all([fileReaderPromise(salesFile1), fileReaderPromise(salesFile2), fileReaderPromise(stockFile)])
+                .then(([salesData1, salesData2, stockDataRaw]) => {
+                    setStatus('Processando análise... Isso pode levar um momento.', 'info');
+                    setTimeout(() => {
+                       try {
+                            const result = runComparativeAnalysis(salesData1, salesData2, stockDataRaw);
+                            if (!result || result.length === 0) {
+                                throw new Error("A análise comparativa não retornou dados.");
+                            }
+                            generateComparativeExcel(result);
+                            setStatus('Análise comparativa concluída com sucesso!', 'success');
+                       } catch(e) {
+                           console.error(e);
+                           setStatus(`Erro durante a análise: ${e.message}`, 'error');
+                       } finally {
+                           processButton.disabled = false;
+                       }
+                    }, 50);
+                })
+                .catch(error => {
+                    setStatus(`Erro ao ler os arquivos: ${error.message}`, 'error');
+                    processButton.disabled = false;
+                });
+        }
+
+        // --- CORE ANALYSIS LOGIC ---
+        function processPeriod(salesData) {
+            const requiredSalesCols = ['ID do Item', 'Produto', 'ID da Variação', 'Nome da Variação', 'Unidades (Pedido pago)', 'Vendas (Pedido pago) (BRL)'];
+            if (!salesData || salesData.length === 0 || !requiredSalesCols.every(col => (salesData[0] || {}).hasOwnProperty(col))) {
+                throw new Error(`A planilha de vendas não contém as colunas obrigatórias: ${requiredSalesCols.join(', ')}`);
+            }
+            let df_processed = JSON.parse(JSON.stringify(salesData));
+
+            const originalIdCounts = df_processed.reduce((acc, row) => {
+                const id = row['ID do Item'];
+                if (id) acc[id] = (acc[id] || 0) + 1;
+                return acc;
+            }, {});
+            df_processed.forEach(row => row.original_id_count = originalIdCounts[row['ID do Item']]);
+
+            df_processed.forEach(row => {
+                row['Unidades (Pedido pago)'] = parseFloat(row['Unidades (Pedido pago)']) || 0;
+                const salesValue = String(row['Vendas (Pedido pago) (BRL)'] || '0').replace(/\./g, '').replace(',', '.');
+                row['Vendas (Pedido pago) (BRL)'] = parseFloat(salesValue) || 0;
+                row['ID da Variação'] = String(row['ID da Variação'] || '').trim();
+            });
+            
+            df_processed = df_processed.filter(row => row['Vendas (Pedido pago) (BRL)'] > 0);
+            const isDashVariation = row => row['ID da Variação'] === '-';
+            const isDuplicatedIdInOriginal = row => row.original_id_count > 1;
+            df_processed = df_processed.filter(row => !(isDashVariation(row) && isDuplicatedIdInOriginal(row)));
+
+            df_processed.sort((a, b) => b['Unidades (Pedido pago)'] - a['Unidades (Pedido pago)']);
+            let somaUnidades = df_processed.reduce((sum, row) => sum + row['Unidades (Pedido pago)'], 0);
+            let acumuladoUn = 0;
+            df_processed.forEach(row => {
+                acumuladoUn += row['Unidades (Pedido pago)'];
+                row['Curva % Un'] = somaUnidades > 0 ? acumuladoUn / somaUnidades : 0;
+                if (row['Curva % Un'] <= 0.80) row['Curva por Unidade'] = 'A';
+                else if (row['Curva % Un'] <= 0.95) row['Curva por Unidade'] = 'B';
+                else row['Curva por Unidade'] = 'C';
+            });
+            
+            df_processed.sort((a, b) => b['Vendas (Pedido pago) (BRL)'] - a['Vendas (Pedido pago) (BRL)']);
+            let somaValor = df_processed.reduce((sum, row) => sum + row['Vendas (Pedido pago) (BRL)'], 0);
+            let acumuladoValor = 0;
+            df_processed.forEach(row => {
+                acumuladoValor += row['Vendas (Pedido pago) (BRL)'];
+                row['Curva % Valor'] = somaValor > 0 ? acumuladoValor / somaValor : 0;
+                 if (row['Curva % Valor'] <= 0.80) row['Curva por Faturamento'] = 'A';
+                else if (row['Curva % Valor'] <= 0.95) row['Curva por Faturamento'] = 'B';
+                else row['Curva por Faturamento'] = 'C';
+            });
+
+            df_processed.forEach(row => {
+                 row['Tkt Médio'] = row['Unidades (Pedido pago)'] > 0 ? row['Vendas (Pedido pago) (BRL)'] / row['Unidades (Pedido pago)'] : 0;
+            });
+
+            return df_processed;
+        }
+
+        function runComparativeAnalysis(salesData1, salesData2, stockDataRaw) {
+            const period1Data = processPeriod(salesData1);
+            const period2Data = processPeriod(salesData2);
+
+            // Process Stock Data
+            let headerRowIndex = -1;
+            for(let i = 0; i < Math.min(5, stockDataRaw.length); i++) {
+                if (Object.values(stockDataRaw[i]).includes('ID do Produto') && Object.values(stockDataRaw[i]).includes('Estoque')) {
+                    headerRowIndex = i; break;
+                }
+            }
+            if (headerRowIndex === -1) throw new Error("Cabeçalho não encontrado na planilha de estoque.");
+            
+            let stockHeader = stockDataRaw[headerRowIndex];
+            const headerMap = Object.fromEntries(Object.entries(stockHeader).map(([key, val]) => [val || key, key]));
+            let stockData = stockDataRaw.slice(headerRowIndex + 1);
+            const stockColsToKeep = { 'ID do Produto': 'stock_product_id', 'Variante Identificador': 'stock_variation_id', 'Estoque': 'Estoque' };
+            let df_stock = stockData.map(row => {
+                let newRow = {};
+                for (const [key, val] of Object.entries(stockColsToKeep)) if(headerMap[key]) newRow[val] = row[headerMap[key]];
+                return newRow;
+            }).filter(row => Object.keys(row).length > 0);
+            df_stock = df_stock.map(row => {
+                row.stock_product_id = parseFloat(row.stock_product_id) || null;
+                row.stock_variation_id = parseFloat(row.stock_variation_id) || null;
+                row.Estoque = parseFloat(row.Estoque) || 0;
+                return row;
+            }).filter(row => row.stock_product_id || row.stock_variation_id);
+            const stockMapByVariation = new Map(df_stock.map(item => [item.stock_variation_id, item.Estoque]));
+            const stockMapByProduct = new Map(df_stock.map(item => [item.stock_product_id, item.Estoque]));
+            
+            // --- Merge and Compare ---
+            const allProducts = new Map();
+
+            const processProduct = (p, period) => {
+                 const key = `${p['ID do Item']}_${p['ID da Variação']}`;
+                 if (!allProducts.has(key)) {
+                     allProducts.set(key, {
+                         ID: p['ID do Item'],
+                         Produto: p['Produto'],
+                         Variação: p['Nome da Variação'],
+                         VariationID: p['ID da Variação']
+                     });
+                 }
+                 const product = allProducts.get(key);
+                 product[`Vendas R$ M${period}`] = p['Vendas (Pedido pago) (BRL)'];
+                 product[`Tkt Médio M${period}`] = p['Tkt Médio'];
+                 product[`Curva Unidade M${period}`] = p['Curva por Unidade'];
+                 product[`Curva Faturamento M${period}`] = p['Curva por Faturamento'];
+            };
+            
+            period1Data.forEach(p => processProduct(p, 1));
+            period2Data.forEach(p => processProduct(p, 2));
+
+            const finalReport = Array.from(allProducts.values()).map(p => {
+                // Fill missing periods with 0 or '-'
+                p['Vendas R$ M1'] = p['Vendas R$ M1'] || 0;
+                p['Vendas R$ M2'] = p['Vendas R$ M2'] || 0;
+                p['Tkt Médio M1'] = p['Tkt Médio M1'] || 0;
+                p['Tkt Médio M2'] = p['Tkt Médio M2'] || 0;
+                p['Curva Unidade M1'] = p['Curva Unidade M1'] || '-';
+                p['Curva Unidade M2'] = p['Curva Unidade M2'] || '-';
+                p['Curva Faturamento M1'] = p['Curva Faturamento M1'] || '-';
+                p['Curva Faturamento M2'] = p['Curva Faturamento M2'] || '-';
+
+                // Calculate variations
+                p['Variação Vendas (R$)'] = p['Vendas R$ M2'] - p['Vendas R$ M1'];
+                p['Variação Tkt Médio'] = p['Tkt Médio M2'] - p['Tkt Médio M1'];
+                
+                // *** AJUSTE SOLICITADO AQUI ***
+                p['Evolução Curva Unidade'] = p['Curva Unidade M1'] === p['Curva Unidade M2'] ? p['Curva Unidade M2'] : `${p['Curva Unidade M1']} -> ${p['Curva Unidade M2']}`;
+                p['Evolução Curva Faturamento'] = p['Curva Faturamento M1'] === p['Curva Faturamento M2'] ? p['Curva Faturamento M2'] : `${p['Curva Faturamento M1']} -> ${p['Curva Faturamento M2']}`;
+
+                // Find stock
+                const variationId = parseFloat(p.VariationID);
+                const productId = parseFloat(p.ID);
+                let stock;
+                 if (p.Variação !== '-' && !isNaN(variationId)) {
+                    stock = stockMapByVariation.get(variationId);
+                 } else {
+                     stock = stockMapByProduct.get(productId);
+                      if (stock === undefined) stock = stockMapByVariation.get(productId);
+                 }
+                p['Estoque Atual'] = stock !== undefined ? stock : 0;
+
+                return p;
+            });
+            
+            // Reorder and rename columns for the final report as requested
+            return finalReport.map(p => ({
+                'ID': p.ID,
+                'Produto': p.Produto,
+                'Variação': p.Variação,
+                'Vendas Mês Recente (R$)': p['Vendas R$ M2'],
+                'Variação Vendas (R$)': p['Variação Vendas (R$)'],
+                'Ticket Médio Mês Recente': p['Tkt Médio M2'],
+                'Variação Tkt Médio': p['Variação Tkt Médio'],
+                'Evolução Curva Unidade': p['Evolução Curva Unidade'],
+                'Evolução Curva Faturamento': p['Evolução Curva Faturamento'],
+                'Estoque Atual': p['Estoque Atual'],
+            }));
+        }
+
+        function generateComparativeExcel(data) {
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(data);
+            XLSX.utils.book_append_sheet(wb, ws, "Relatorio_Comparativo_Final");
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([wbout], { type: 'application/octet-stream' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'Analise_Comparativa_ABC.xlsx';
+            link.className = 'block w-full text-center bg-[#2f1c46] text-white font-bold py-3 px-4 rounded-lg hover:bg-[#462a69] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#462a69] transition duration-150 ease-in-out';
+            link.textContent = 'Baixar Relatório Comparativo';
+            downloadArea.innerHTML = '';
+            downloadArea.appendChild(link);
+            downloadArea.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
