@@ -16,53 +16,47 @@
             border: 2px dashed #9ca3af;
             transition: background-color 0.2s, border-color 0.2s;
         }
-        /* O estilo de drag-over será aplicado via JS com classes do Tailwind */
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 flex items-center justify-center min-h-screen p-4">
-    <div class="w-full max-w-3xl mx-auto p-6 md:p-8 bg-white rounded-2xl shadow-lg">
+    <div class="w-full max-w-4xl mx-auto p-6 md:p-8 bg-white rounded-2xl shadow-lg">
         <div class="text-center mb-8">
             <h1 class="text-3xl font-bold text-gray-900">Analisador Comparativo de Curva ABC</h1>
             <p class="text-gray-500 mt-2">Envie as planilhas dos dois períodos e o estoque atual.</p>
         </div>
 
-        <div class="grid md:grid-cols-2 gap-6">
-             <!-- Coluna Esquerda -->
-            <div class="space-y-6">
-                <!-- Input Vendas Mês 1 -->
-                <div id="sales1-drop-zone" class="file-input-container p-6 rounded-lg text-center cursor-pointer h-full flex flex-col justify-center">
-                    <input type="file" id="sales1-file-input" class="hidden" accept=".csv,.xlsx">
-                    <label for="sales1-file-input" class="cursor-pointer">
-                        <svg class="mx-auto h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                        <p class="mt-2 text-sm text-gray-600"><span class="font-semibold text-[#2f1c46]">Vendas Período 1</span></p>
-                        <p class="text-xs text-gray-500">(Mês anterior)</p>
-                        <span id="sales1-file-name" class="mt-2 block text-xs font-medium text-[#2f1c46]"></span>
-                    </label>
-                </div>
-
-                 <!-- Input Vendas Mês 2 -->
-                <div id="sales2-drop-zone" class="file-input-container p-6 rounded-lg text-center cursor-pointer h-full flex flex-col justify-center">
-                    <input type="file" id="sales2-file-input" class="hidden" accept=".csv,.xlsx">
-                    <label for="sales2-file-input" class="cursor-pointer">
-                         <svg class="mx-auto h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                        <p class="mt-2 text-sm text-gray-600"><span class="font-semibold text-[#2f1c46]">Vendas Período 2</span></p>
-                        <p class="text-xs text-gray-500">(Mês mais recente)</p>
-                        <span id="sales2-file-name" class="mt-2 block text-xs font-medium text-[#2f1c46]"></span>
-                    </label>
-                </div>
+        <div class="grid md:grid-cols-3 gap-4">
+            <!-- Input Vendas Mês 1 -->
+            <div id="sales1-drop-zone" class="file-input-container p-4 rounded-lg text-center cursor-pointer flex flex-col justify-center items-center">
+                <input type="file" id="sales1-file-input" class="hidden" accept=".csv,.xlsx">
+                <label for="sales1-file-input" class="cursor-pointer">
+                    <svg class="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                    <p class="mt-2 text-sm text-gray-600"><span class="font-semibold text-[#2f1c46]">Vendas Período 1</span></p>
+                    <p class="text-xs text-gray-500">(Mês anterior)</p>
+                    <span id="sales1-file-name" class="mt-2 block text-xs font-medium text-[#2f1c46] truncate"></span>
+                </label>
             </div>
-             <!-- Coluna Direita -->
-            <div class="space-y-6">
-                 <!-- Input Estoque -->
-                <div id="stock-drop-zone" class="file-input-container p-6 rounded-lg text-center cursor-pointer h-full flex flex-col justify-center">
-                    <input type="file" id="stock-file-input" class="hidden" accept=".csv,.xlsx">
-                    <label for="stock-file-input" class="cursor-pointer">
-                         <svg class="mx-auto h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                        <p class="mt-2 text-sm text-gray-600"><span class="font-semibold text-[#2f1c46]">Estoque Atual</span></p>
-                         <p class="text-xs text-gray-500">(Apenas 1 arquivo)</p>
-                        <span id="stock-file-name" class="mt-2 block text-xs font-medium text-[#2f1c46]"></span>
-                    </label>
-                </div>
+
+             <!-- Input Vendas Mês 2 -->
+            <div id="sales2-drop-zone" class="file-input-container p-4 rounded-lg text-center cursor-pointer flex flex-col justify-center items-center">
+                <input type="file" id="sales2-file-input" class="hidden" accept=".csv,.xlsx">
+                <label for="sales2-file-input" class="cursor-pointer">
+                     <svg class="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                    <p class="mt-2 text-sm text-gray-600"><span class="font-semibold text-[#2f1c46]">Vendas Período 2</span></p>
+                    <p class="text-xs text-gray-500">(Mês mais recente)</p>
+                    <span id="sales2-file-name" class="mt-2 block text-xs font-medium text-[#2f1c46] truncate"></span>
+                </label>
+            </div>
+            
+             <!-- Input Estoque -->
+            <div id="stock-drop-zone" class="file-input-container p-4 rounded-lg text-center cursor-pointer flex flex-col justify-center items-center">
+                <input type="file" id="stock-file-input" class="hidden" accept=".csv,.xlsx">
+                <label for="stock-file-input" class="cursor-pointer">
+                     <svg class="mx-auto h-8 w-8 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                    <p class="mt-2 text-sm text-gray-600"><span class="font-semibold text-[#2f1c46]">Estoque Atual</span></p>
+                     <p class="text-xs text-gray-500">(Apenas 1 arquivo)</p>
+                    <span id="stock-file-name" class="mt-2 block text-xs font-medium text-[#2f1c46] truncate"></span>
+                </label>
             </div>
         </div>
 
@@ -114,6 +108,7 @@
             else if (input.id.startsWith('sales2')) salesFile2 = file;
             else stockFile = file;
             nameDisplay.textContent = file ? file.name : '';
+            nameDisplay.title = file ? file.name : ''; // Add title for full name on hover
         }
         
         setupDragDrop(sales1DropZone, sales1FileInput, sales1FileName);
@@ -297,7 +292,6 @@
             period2Data.forEach(p => processProduct(p, 2));
 
             const finalReport = Array.from(allProducts.values()).map(p => {
-                // Fill missing periods with 0 or '-'
                 p['Vendas R$ M1'] = p['Vendas R$ M1'] || 0;
                 p['Vendas R$ M2'] = p['Vendas R$ M2'] || 0;
                 p['Tkt Médio M1'] = p['Tkt Médio M1'] || 0;
@@ -307,15 +301,12 @@
                 p['Curva Faturamento M1'] = p['Curva Faturamento M1'] || '-';
                 p['Curva Faturamento M2'] = p['Curva Faturamento M2'] || '-';
 
-                // Calculate variations
                 p['Variação Vendas (R$)'] = p['Vendas R$ M2'] - p['Vendas R$ M1'];
                 p['Variação Tkt Médio'] = p['Tkt Médio M2'] - p['Tkt Médio M1'];
                 
-                // *** AJUSTE SOLICITADO AQUI ***
                 p['Evolução Curva Unidade'] = p['Curva Unidade M1'] === p['Curva Unidade M2'] ? p['Curva Unidade M2'] : `${p['Curva Unidade M1']} -> ${p['Curva Unidade M2']}`;
                 p['Evolução Curva Faturamento'] = p['Curva Faturamento M1'] === p['Curva Faturamento M2'] ? p['Curva Faturamento M2'] : `${p['Curva Faturamento M1']} -> ${p['Curva Faturamento M2']}`;
 
-                // Find stock
                 const variationId = parseFloat(p.VariationID);
                 const productId = parseFloat(p.ID);
                 let stock;
@@ -330,7 +321,6 @@
                 return p;
             });
             
-            // Reorder and rename columns for the final report as requested
             return finalReport.map(p => ({
                 'ID': p.ID,
                 'Produto': p.Produto,
